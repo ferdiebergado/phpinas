@@ -1,0 +1,44 @@
+{
+    "name": "ferdiebergado/php-broker",
+    "description": "A PSR-compliant php api application skeleton",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ferdinand Saporas Bergado",
+            "email": "ferdiebergado@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Core\\": "core\\",
+            "App\\": "app\\"
+        },
+        "files": [
+            "core/helpers.php"
+        ]
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "security-checker security:check ./composer.lock"
+        ]
+    },
+    "config": {
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^7.1.3",
+        "middlewares/fast-route": "^1.2",
+        "middlewares/request-handler": "^1.3",
+        "northwoods/broker": "^3.0",
+        "nyholm/psr7": "^1.0",
+        "nyholm/psr7-server": "^0.3.0",
+        "paragonie/easydb": "^2.7",
+        "vlucas/phpdotenv": "^2.5",
+        "zendframework/zend-httphandlerrunner": "^1.0"
+    }
+}
