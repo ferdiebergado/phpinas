@@ -44,6 +44,7 @@ use Nyholm\Psr7Server\ServerRequestCreator;
 use function FastRoute\simpleDispatcher;
 use Middlewares\FastRoute;
 use Middlewares\RequestHandler;
+use Nyholm\Psr7\Response;
 
 $psr17Factory = new Psr17Factory();
 
@@ -64,7 +65,8 @@ $routes = simpleDispatcher(function (\FastRoute\RouteCollector $r) {
         $name = $request->getAttribute('name');
 
         //Or return a response
-        $response = (new Psr17Factory())->createResponse();
+        // $response = (new Psr17Factory())->createResponse();
+        $response = new Response();
         $response->getBody()->write("Hello $name");
         return $response;
     });
