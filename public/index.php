@@ -36,48 +36,66 @@ define('VENDOR_PATH', BASE_PATH . 'vendor' . DS);
 define('DATE_FORMAT_SHORT', 'Y-m-d h:i:s');
 define('DATE_FORMAT_LONG', 'Y-m-d h:i:s A e');
 
-require __DIR__ . '/../vendor/autoload.php';
+require VENDOR_PATH . 'autoload.php';
 
-use Northwoods\Broker\Broker;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7Server\ServerRequestCreator;
-use function FastRoute\simpleDispatcher;
-use Middlewares\FastRoute;
-use Middlewares\RequestHandler;
 use Nyholm\Psr7\Response;
+use Middlewares\FastRoute;
+use Core\Container\Container;
+use Northwoods\Broker\Broker;
+use Middlewares\RequestHandler;
+use function Http\Response\send;
+use App\Controller\HomeController;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use function FastRoute\simpleDispatcher;
+use Nyholm\Psr7Server\ServerRequestCreator;
 
+/* Register the error handler */
+error_reporting(E_ALL);
+$whoops = new Whoops\Run;
+if (config('debug_mode')) {
+    $whoops->pushHandler(new Whoops\Handler\JsonResponseHandler);
+} else {
+    $whoops->pushHandler(function($e) use($whoops) {
+        $whoops->allowQuit(false);
+        $whoops->writeToOutput(false);
+        $whoops->pushHandler(new Whoops\Handler\PrettyPageHandler());
+        $body = $whoops->handleException($e);
+        // $app = require(CONFIG_PATH . 'app.php');
+        // Core\Mail::send($app['author_email'], $app['name'] . ' Error Exception', $body);
+        // logger($e->getMessage(), 2);
+        // require VIEW_PATH . '500.php';
+    });
+}
+// $whoops->register();
+
+/* Create the Request and Response Objects */
 $psr17Factory = new Psr17Factory();
-
 $creator = new ServerRequestCreator(
     $psr17Factory, // ServerRequestFactory
     $psr17Factory, // UriFactory
     $psr17Factory, // UploadedFileFactory
     $psr17Factory  // StreamFactory
 );
-
 /** @var \Psr\Http\Message\ServerRequestInterface */
 $request = $creator->fromGlobals();
+$response = new Psr17Factory();
 
 //Create the router dispatcher
 $routes = simpleDispatcher(function (\FastRoute\RouteCollector $r) {
-    $r->addRoute('GET', '/hello/{name}', function ($request) {
-        //The route parameters are stored as attributes
-        $name = $request->getAttribute('name');
-
-        //Or return a response
-        // $response = (new Psr17Factory())->createResponse();
-        $response = new Response();
-        $response->getBody()->write("Hello $name");
-        return $response;
-    });
+    $namespace = "App\\Controller\\";
+    $r->addRoute('GET', '/hello/{name}', $namespace . 'HomeController');
 });
 
-// Use append() or prepend() to add middleware
+/* Initialize the Dependency Injection Container */
+$container = new Container();
+
+/* Build the Middleware Stack */
 $broker = new Broker();
-$broker->append(new FastRoute($routes));
-$broker->append(new RequestHandler());
+$broker->append(new FastRoute($routes, $response));
+$broker->append(new RequestHandler($container));
 
 /** @var \Psr\Http\Message\ResponseInterface */
 $response = $broker->handle($request);
 
-(new \Zend\HttpHandlerRunner\Emitter\SapiEmitter())->emit($response);
+/* Send the response to the http client */
+send($response->withHeader('Content-Type', 'application/json'));

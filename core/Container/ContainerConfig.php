@@ -3,11 +3,15 @@ declare (strict_types = 1);
 
 namespace Core\Container;
 
-use WoohooLabs\Zen\Config\AbstractContainerConfig;
-use WoohooLabs\Zen\Config\EntryPoint\WildcardEntryPoint;
-use WoohooLabs\Zen\Config\Hint\DefinitionHint;
+use Nyholm\Psr7\Request;
+use Nyholm\Psr7\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use WoohooLabs\Zen\Config\Hint\WildcardHint;
+use WoohooLabs\Zen\Config\Hint\DefinitionHint;
+use WoohooLabs\Zen\Config\AbstractContainerConfig;
 use WoohooLabs\Zen\Config\EntryPoint\ClassEntryPoint;
+use WoohooLabs\Zen\Config\EntryPoint\WildcardEntryPoint;
 
 class ContainerConfig extends AbstractContainerConfig
 {
@@ -22,7 +26,8 @@ class ContainerConfig extends AbstractContainerConfig
     protected function getDefinitionHints() : array
     {
         return [
-            // UserServiceInterface::class => UserService::class,
+            // ServerRequestInterface::class => Request::class,
+            // ResponseInterface::class => Response::class
             // PlantServiceInterface::class => DefinitionHint::prototype(PlantService::class),
         ];
     }
