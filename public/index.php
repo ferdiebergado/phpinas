@@ -55,7 +55,7 @@ $whoops = new Whoops\Run;
 if (config('debug_mode')) {
     $whoops->pushHandler(new Whoops\Handler\JsonResponseHandler);
 } else {
-    $whoops->pushHandler(function($e) use($whoops) {
+    $whoops->pushHandler(function ($e) use ($whoops) {
         $whoops->allowQuit(false);
         $whoops->writeToOutput(false);
         $whoops->pushHandler(new Whoops\Handler\PrettyPageHandler());
@@ -83,16 +83,16 @@ $response = new Psr17Factory();
 //Create the router dispatcher
 $routes = simpleDispatcher(function (\FastRoute\RouteCollector $r) {
     $namespace = "App\\Controller\\";
-    $r->addRoute('GET', '/hello/{name}', $namespace . 'HomeController');
+    $r->addRoute('GET', '/hello/{name}', $namespace . 'HomeController::index');
 });
 
 /* Initialize the Dependency Injection Container */
-$container = new Container();
+// $container = new Container();
 
 /* Build the Middleware Stack */
 $broker = new Broker();
 $broker->append(new FastRoute($routes, $response));
-$broker->append(new RequestHandler($container));
+$broker->append(new RequestHandler());
 
 /** @var \Psr\Http\Message\ResponseInterface */
 $response = $broker->handle($request);

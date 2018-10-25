@@ -40,7 +40,6 @@
         "nyholm/psr7": "^1.0",
         "nyholm/psr7-server": "^0.3.0",
         "paragonie/easydb": "^2.7",
-        "vlucas/phpdotenv": "^2.5",
-        "woohoolabs/zen": "^2.4"
+        "vlucas/phpdotenv": "^2.5"
     }
 }

@@ -2,19 +2,17 @@
 
 namespace App\Controller;
 
-use ParagonIE\EasyDB\Factory;
-use ParagonIE\EasyDB\EasyDB;
-use Core\Database;
+use Nyholm\Psr7\Factory\Psr17Factory;
 
-abstract class AbstractController implements ControllerInterface
+abstract class AbstractController
 {
     /**
-     * @var Database
+     * @var ResponseInterface
      */
-    protected $db;
+    protected $response;
 
-    public function __construct(Database $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->response = (new Psr17Factory())->createResponse();
     }
 }
