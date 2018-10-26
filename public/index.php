@@ -40,13 +40,18 @@ require VENDOR_PATH . 'autoload.php';
 
 use Nyholm\Psr7\Response;
 use Middlewares\FastRoute;
-use Core\Container\Container;
+use Core\Database\Database;
+use ParagonIE\EasyDB\EasyDB;
 use Northwoods\Broker\Broker;
+use League\Container\Container;
 use Middlewares\RequestHandler;
 use function Http\Response\send;
+use App\Controller\AuthController;
 use App\Controller\HomeController;
 use Nyholm\Psr7\Factory\Psr17Factory;
+use App\Controller\AbstractController;
 use function FastRoute\simpleDispatcher;
+use League\Container\Definition\Definition;
 use Nyholm\Psr7Server\ServerRequestCreator;
 
 /* Register the error handler */
@@ -66,7 +71,10 @@ if (config('debug_mode')) {
         // require VIEW_PATH . '500.php';
     });
 }
-// $whoops->register();
+$whoops->register();
+
+$dotenv = new Dotenv\Dotenv(BASE_PATH);
+$dotenv->load();
 
 /* Create the Request and Response Objects */
 $psr17Factory = new Psr17Factory();
@@ -81,18 +89,35 @@ $request = $creator->fromGlobals();
 $response = new Psr17Factory();
 
 //Create the router dispatcher
-$routes = simpleDispatcher(function (\FastRoute\RouteCollector $r) {
+$router = simpleDispatcher(function (\FastRoute\RouteCollector $r) {
     $namespace = "App\\Controller\\";
-    $r->addRoute('GET', '/hello/{name}', $namespace . 'HomeController::index');
+    $routes = include_once(CONFIG_PATH . 'routes.php');
+    foreach ($routes as $route) {
+        $r->addRoute($route[0], $route[1], $namespace . $route[2]);
+    }
 });
 
 /* Initialize the Dependency Injection Container */
-// $container = new Container();
+$dsn = getenv('DB_DRIVER') . ":host=" . getenv('DB_HOST') . ";port=" . getenv('DB_PORT') . ";dbname=" . getenv('DB_NAME') . ";charset=utf8mb4";
+$definitions = [
+    new Definition(AuthController::class),
+    new Definition(HomeController::class),
+    (new Definition(AbstractController::class))->addArguments([DatabaseInterface::class, Psr17Factory::class]),
+    new Definition(DatabaseInterface::class, Database::class),
+    (new Definition('db', EasyDB::class))->addArgument(PDO::class),
+    (new Definition('pdo', PDO::class))->addArgument($dsn)->addArgument(getenv('DB_USER'))->addArgument(getenv('DB_PASS'))->setShared()
+];
+
+// $aggregate = new League\Container\Definition\DefinitionAggregate($definitions);
+$container = new League\Container\Container;
+
+$container->add(AuthController::class);
+$container->add(AbstractController::class)->addArguments([DatabaseInterface::class, Psr17Factory::class]);
 
 /* Build the Middleware Stack */
 $broker = new Broker();
-$broker->append(new FastRoute($routes, $response));
-$broker->append(new RequestHandler());
+$broker->append(new FastRoute($router, $response));
+$broker->append(new RequestHandler($container));
 
 /** @var \Psr\Http\Message\ResponseInterface */
 $response = $broker->handle($request);

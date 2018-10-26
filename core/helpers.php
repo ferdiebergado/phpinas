@@ -305,3 +305,10 @@ if (!function_exists('encode_email')) {
         return $encoded;
     }
 }
+
+if (!function_exists('jsonize')) {
+    function jsonize(array $data)
+    {
+        return json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+    }
+}

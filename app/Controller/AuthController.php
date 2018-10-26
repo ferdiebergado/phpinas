@@ -10,7 +10,7 @@ use App\Controller\AbstractController;
 
 class AuthController extends AbstractController
 {
-    public function login(ServerRequestInterface $request, ResponseInterface $response) : ResponseInterface
+    public function __invoke(ServerRequestInterface $request) : ResponseInterface
     {
         $statuscode = 401;
         $body = $request->getParsedBody();
@@ -37,9 +37,7 @@ class AuthController extends AbstractController
             ->getBody()
             ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
 
-        return $response
-            ->withHeader("Content-Type", "application/json")
-            ->withStatus($statuscode);
+        return $response->withStatus($statuscode);
     }
 
     protected function issueToken(ServerRequestInterface $request) : array

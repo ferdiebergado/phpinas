@@ -7,16 +7,16 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use App\Controller\AbstractController;
 
-class HomeController extends AbstractController
+class HomeController
 {
-    public function index(ServerRequestInterface $request) : ResponseInterface
+    public function __invoke(ServerRequestInterface $request) : ResponseInterface
     {
         $data = [
             'data' => 'Welcome ' . $request->getAttribute('name')
         ];
-        // $response = new Response();
-        $this->response->getBody()->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
-        return $this->response;
+        $response = new Response();
+        $response->getBody()->write(jsonize($data));
+        return $response;
     }
 
     public function debug(ServerRequestInterface $request) : ResponseInterface

@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS phppsr CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE phppsr;
+CREATE DATABASE IF NOT EXISTS phpinas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE phpinas;
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
   `id` bigint(20) unsigned NOT NULL auto_increment,
