@@ -1,57 +1,27 @@
 <?php declare (strict_types = 1);
 /**
- * phpz - A fast PHP API framework using the Middleware Approach with PSR-Compliant Components
+ * phpinas - A fast PHP API framework using the Middleware Approach with PSR-Compliant Components
  *
- * @package  phpz
+ * @package  phpinas
  * @author   Ferdinand Saporas Bergado <ferdiebergado@gmail.com>
  * MIT License
-
- * Copyright (c) 2018 Ferdinand Saporas Bergado
-
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
-
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
-
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
  */
 
 /* FRONT CONTROLLER */
 
 define('DS', DIRECTORY_SEPARATOR);
 define('BASE_PATH', __DIR__ . DS . '..' . DS);
-define('CONFIG_PATH', BASE_PATH . 'config' . DS);
 define('VENDOR_PATH', BASE_PATH . 'vendor' . DS);
+define('CONFIG_PATH', BASE_PATH . 'config' . DS);
+define('CORE_PATH', BASE_PATH . 'core' . DS);
 define('DATE_FORMAT_SHORT', 'Y-m-d h:i:s');
 define('DATE_FORMAT_LONG', 'Y-m-d h:i:s A e');
 
 require VENDOR_PATH . 'autoload.php';
 
-use Nyholm\Psr7\Response;
-use Middlewares\FastRoute;
 use Core\Database\Database;
-use ParagonIE\EasyDB\EasyDB;
-use Northwoods\Broker\Broker;
-use League\Container\Container;
-use Middlewares\RequestHandler;
 use function Http\Response\send;
-use App\Controller\AuthController;
-use App\Controller\HomeController;
 use Nyholm\Psr7\Factory\Psr17Factory;
-use App\Controller\AbstractController;
-use function FastRoute\simpleDispatcher;
-use League\Container\Definition\Definition;
 use Nyholm\Psr7Server\ServerRequestCreator;
 
 /* Register the error handler */
@@ -73,10 +43,11 @@ if (config('debug_mode')) {
 }
 $whoops->register();
 
+/* Load the environment variables */
 $dotenv = new Dotenv\Dotenv(BASE_PATH);
 $dotenv->load();
 
-/* Create the Request and Response Objects */
+/* Create the Request Object */
 $psr17Factory = new Psr17Factory();
 $creator = new ServerRequestCreator(
     $psr17Factory, // ServerRequestFactory
@@ -86,41 +57,12 @@ $creator = new ServerRequestCreator(
 );
 /** @var \Psr\Http\Message\ServerRequestInterface */
 $request = $creator->fromGlobals();
-$response = new Psr17Factory();
-
-//Create the router dispatcher
-$router = simpleDispatcher(function (\FastRoute\RouteCollector $r) {
-    $namespace = "App\\Controller\\";
-    $routes = include_once(CONFIG_PATH . 'routes.php');
-    foreach ($routes as $route) {
-        $r->addRoute($route[0], $route[1], $namespace . $route[2]);
-    }
-});
-
-/* Initialize the Dependency Injection Container */
-$dsn = getenv('DB_DRIVER') . ":host=" . getenv('DB_HOST') . ";port=" . getenv('DB_PORT') . ";dbname=" . getenv('DB_NAME') . ";charset=utf8mb4";
-$definitions = [
-    new Definition(AuthController::class),
-    new Definition(HomeController::class),
-    (new Definition(AbstractController::class))->addArguments([DatabaseInterface::class, Psr17Factory::class]),
-    new Definition(DatabaseInterface::class, Database::class),
-    (new Definition('db', EasyDB::class))->addArgument(PDO::class),
-    (new Definition('pdo', PDO::class))->addArgument($dsn)->addArgument(getenv('DB_USER'))->addArgument(getenv('DB_PASS'))->setShared()
-];
-
-// $aggregate = new League\Container\Definition\DefinitionAggregate($definitions);
-$container = new League\Container\Container;
-
-$container->add(AuthController::class);
-$container->add(AbstractController::class)->addArguments([DatabaseInterface::class, Psr17Factory::class]);
 
 /* Build the Middleware Stack */
-$broker = new Broker();
-$broker->append(new FastRoute($router, $response));
-$broker->append(new RequestHandler($container));
-
+$broker = require(CORE_PATH . 'middlewares.php');
 /** @var \Psr\Http\Message\ResponseInterface */
 $response = $broker->handle($request);
 
 /* Send the response to the http client */
 send($response->withHeader('Content-Type', 'application/json'));
+// send($response);

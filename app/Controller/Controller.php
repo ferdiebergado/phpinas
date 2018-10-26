@@ -5,7 +5,7 @@ namespace App\Controller;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Core\Database\DatabaseInterface;
 
-class AbstractController
+class Controller
 {
     /**
      * @var DatabaseInterface
@@ -23,7 +23,7 @@ class AbstractController
      * @param DatabaseInterface $db
      * @param Psr17Factory $responseFactory
      */
-    public function __construct(DatabaseInterface $db, Psr17Factory $responseFactory)
+    public function __construct(Psr17Factory $responseFactory)
     {
         $this->db = $db;
         $this->response = $responseFactory->createResponse();

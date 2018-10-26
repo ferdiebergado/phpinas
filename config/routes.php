@@ -1,5 +1,5 @@
 <?php
 return [
-    ['GET', '/hello/{name}', 'HomeController'],
-    ['POST', '/auth/login', 'AuthController']
+    ['GET', '/hello/{name}', ['HomeController', 'index']],
+    ['POST', '/auth/login', ['AuthController', 'login']]
 ];

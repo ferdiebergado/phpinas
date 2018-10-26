@@ -4,13 +4,18 @@ namespace Core\Database;
 
 use ParagonIE\EasyDB\EasyDB;
 use Core\Database\DatabaseInterface;
+use PDO;
 
 class Database extends EasyDB implements DatabaseInterface
 {
-    // public function __construct()
-    // {
-    //     parent::__construct($this->connect(), getenv('DB_DRIVER'));
-    // }
+    /**
+     * @param PDO $pdo
+     * @param string $driver
+     */
+    public function __construct(PDO $pdo, $driver)
+    {
+        parent::__construct($pdo, $driver);
+    }
 
     // protected function connect() : PDO
     // {

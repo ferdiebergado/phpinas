@@ -6,11 +6,17 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use DateTime;
 use Firebase\JWT\JWT;
-use App\Controller\AbstractController;
+use Core\Database\Database;
+use Core\Database\DatabaseInterface;
 
-class AuthController extends AbstractController
+class AuthController
 {
-    public function __invoke(ServerRequestInterface $request) : ResponseInterface
+    /**
+     * @var DatabaseInterface
+     */
+    public $db;
+
+    public function login(ServerRequestInterface $request) : ResponseInterface
     {
         $statuscode = 401;
         $body = $request->getParsedBody();
@@ -63,5 +69,15 @@ class AuthController extends AbstractController
         $data["expires"] = $future->getTimeStamp();
 
         return $data;
+    }
+
+    /**
+     * Set database.
+     * 
+     * @param DatabaseInterface
+     */
+    public function setDatabase(DatabaseInterface $db)
+    {
+        $this->db = $db;
     }
 }

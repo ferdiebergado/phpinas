@@ -2,19 +2,18 @@
 
 namespace App\Controller;
 
-use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use App\Controller\AbstractController;
+use Nyholm\Psr7\Factory\Psr17Factory;
 
 class HomeController
 {
-    public function __invoke(ServerRequestInterface $request) : ResponseInterface
+    public function index(ServerRequestInterface $request) : ResponseInterface
     {
         $data = [
             'data' => 'Welcome ' . $request->getAttribute('name')
         ];
-        $response = new Response();
+        $response = (new Psr17Factory())->createResponse();
         $response->getBody()->write(jsonize($data));
         return $response;
     }
