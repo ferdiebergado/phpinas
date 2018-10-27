@@ -6,15 +6,27 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use DateTime;
 use Firebase\JWT\JWT;
-use Core\Database\Database;
 use Core\Database\DatabaseInterface;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use App\Controller\Controller;
 
-class AuthController
+class AuthController extends Controller
 {
     /**
      * @var DatabaseInterface
      */
-    public $db;
+    private $db;
+
+    /**
+     * Set database.
+     * 
+     * @param DatabaseInterface
+     */
+    public function __construct(DatabaseInterface $db, Psr17Factory $responseFactory)
+    {
+        parent::__construct($responseFactory);
+        $this->db = $db;
+    }
 
     public function login(ServerRequestInterface $request) : ResponseInterface
     {
@@ -30,20 +42,26 @@ class AuthController
                     $this->db->update('users', ['password' => $newhash], ['id' => $user['id']]);
                 }
                 $data = $this->issueToken($request->withAttribute('user', ['name' => $user['name'], 'email' => $user['email'], 'id' => $user['id']]));
-                $this->db->update('users', ['apikey' => $data['token'], 'last_login' => date(DATE_FORMAT_SHORT)], ['id' => $authuser['id']]);
+                $this->db->update('users', [
+                    'apikey' => $data['token'], 
+                    'last_login' => date(DATE_FORMAT_SHORT)
+                ], ['id' => $user['id']]);
                 // $authuser = $this->db->row("SELECT id, name, email, active, last_login FROM users WHERE id = ?", $user['id']);
                 // cache_remember('user_' . $user['id'], 30, $authuser);
                 $statuscode = 200;
+
             } else {
-                $data = 'Invalid username or password.';
+                $data = [
+                    'error' => 'Invalid username or password.'                    
+                ];
             }
         }
 
-        $response
+        $this->response
             ->getBody()
-            ->write(json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
+            ->write(jsonize($data));
 
-        return $response->withStatus($statuscode);
+        return $this->response->withStatus($statuscode);
     }
 
     protected function issueToken(ServerRequestInterface $request) : array
@@ -69,15 +87,5 @@ class AuthController
         $data["expires"] = $future->getTimeStamp();
 
         return $data;
-    }
-
-    /**
-     * Set database.
-     * 
-     * @param DatabaseInterface
-     */
-    public function setDatabase(DatabaseInterface $db)
-    {
-        $this->db = $db;
     }
 }

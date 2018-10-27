@@ -28,7 +28,7 @@ use Nyholm\Psr7Server\ServerRequestCreator;
 error_reporting(E_ALL);
 $whoops = new Whoops\Run;
 if (config('debug_mode')) {
-    $whoops->pushHandler(new Whoops\Handler\JsonResponseHandler);
+    $whoops->pushHandler(new Whoops\Handler\PrettyPageHandler);
 } else {
     $whoops->pushHandler(function ($e) use ($whoops) {
         $whoops->allowQuit(false);

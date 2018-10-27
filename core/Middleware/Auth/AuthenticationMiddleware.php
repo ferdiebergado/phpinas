@@ -13,22 +13,23 @@ class AuthenticationMiddleware implements MiddlewareInterface
     /**
      * @var ResponseInterface
      */
-    protected $errorResponsePrototype;
+    protected $errorResponse;
 
-    public function __construct(ResponseInterface $errorResponsePrototype)
+    public function __construct(DatabaseInterface $db, ResponseInterface $response)
     {
-        $this->errorResponsePrototype = $errorResponsePrototype;
+        $this->db = $db;
+        $this->errorResponse = $response;
     }
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler) : ResponseInterface
     {
         // Return Error 401 "Unauthorized" if the provided API key doesn't match the needed one
         $token = str_ireplace('bearer ', '', $request->getHeader('Authorization'));
-        $db = new Database;
-        $user = $db->row("SELECT id FROM users WHERE apikey = ?", $token[0]);
+        $decoded = JWT::decode($token, getenv('JWT_SECRET'), array('HS256'));
+        $user = $this->db->row("SELECT id FROM users WHERE apikey = ?", $decoded['sub']['apikey']);
         if (empty($user)) {
-            $this->errorResponsePrototype->getBody()->write(json_encode($user));
-            return $this->errorResponsePrototype->withHeader('Content-Type', 'application/json')->withStatus(401);
+            $this->errorResponse->getBody()->write(jsonize($user));
+            return $this->errorResponse->withStatus(401);
         }
         
         // Invoke the remaining middleware if authentication was successful
