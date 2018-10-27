@@ -19,10 +19,9 @@ define('DATE_FORMAT_LONG', 'Y-m-d h:i:s A e');
 
 require VENDOR_PATH . 'autoload.php';
 
-use Core\Database\Database;
-use function Http\Response\send;
-use Nyholm\Psr7\Factory\Psr17Factory;
-use Nyholm\Psr7Server\ServerRequestCreator;
+// create a log channel
+$logger = new Monolog\Logger('logger');
+$logger->pushHandler(new Monolog\Handler\StreamHandler(BASE_PATH . 'app.log', Monolog\Logger::DEBUG));
 
 /* Register the error handler */
 error_reporting(E_ALL);
@@ -48,8 +47,8 @@ $dotenv = new Dotenv\Dotenv(BASE_PATH);
 $dotenv->load();
 
 /* Create the Request Object */
-$psr17Factory = new Psr17Factory();
-$creator = new ServerRequestCreator(
+$psr17Factory = new Nyholm\Psr7\Factory\Psr17Factory();
+$creator = new Nyholm\Psr7Server\ServerRequestCreator(
     $psr17Factory, // ServerRequestFactory
     $psr17Factory, // UriFactory
     $psr17Factory, // UploadedFileFactory
@@ -64,5 +63,5 @@ $broker = require(CORE_PATH . 'middlewares.php');
 $response = $broker->handle($request);
 
 /* Send the response to the http client */
-send($response->withHeader('Content-Type', 'application/json'));
-// send($response);
+// Http\Response\send($response->withHeader('Content-Type', 'application/json'));
+Http\Response\send($response);

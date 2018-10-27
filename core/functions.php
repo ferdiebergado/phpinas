@@ -13,6 +13,18 @@ if (!function_exists('config')) {
     }
 }
 
+/* Fetch a config key */
+// if (!function_exists('config')) {
+//     function config($key)
+//     {
+//         $keys = explode('.', $key);
+//         $config = require(CONFIG_PATH . $key[0] . '.php');
+//         if (array_key_exists($key[1], $config)) {
+//             return $config[$key];
+//         }
+//     }
+// }
+
 /* Sanitize a request/response variable */
 if (!function_exists('test_input')) {
     function test_input($data)
