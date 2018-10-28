@@ -43,7 +43,7 @@ class AuthController extends Controller
                 }
                 $data = $this->issueToken($request->withAttribute('user', ['name' => $user['name'], 'email' => $user['email'], 'id' => $user['id']]));
                 $this->db->update('users', [
-                    'apikey' => $data['token'], 
+                    'apikey' => $data['token'],
                     'last_login' => date(DATE_FORMAT_SHORT)
                 ], ['id' => $user['id']]);
                 // $authuser = $this->db->row("SELECT id, name, email, active, last_login FROM users WHERE id = ?", $user['id']);
@@ -52,7 +52,7 @@ class AuthController extends Controller
 
             } else {
                 $data = [
-                    'error' => 'Invalid username or password.'                    
+                    'error' => 'Invalid username or password.'
                 ];
             }
         }
