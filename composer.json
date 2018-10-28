@@ -46,6 +46,7 @@
         "nyholm/psr7-server": "^0.3.0",
         "paragonie/easydb": "^2.7",
         "php-di/php-di": "^6.0",
+        "phpmailer/phpmailer": "^6.0",
         "tuupola/cors-middleware": "^0.9.1",
         "tuupola/slim-jwt-auth": "^3.1",
         "vlucas/phpdotenv": "^2.5"

@@ -15,15 +15,8 @@ $broker->append((new Middlewares\ContentType([
 ]))->useDefault(false));
         
 /* CORS */
-$broker->append(new Tuupola\Middleware\CorsMiddleware([
-    "origin" => ["*"],
-    "methods" => ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    "headers.allow" => ["Content-Type", "Authorization", "If-Match", "If-Unmodified-Since"],
-    "headers.expose" => ["Etag"],
-    "credentials" => true,
-    "cache" => 60,
-    "logger" => $logger
-]));
+$corsconfig = require(CONFIG_PATH . "cors.php");
+$broker->append(new Tuupola\Middleware\CorsMiddleware($corsconfig));
             
 /* Json Payload */
 $broker->append(new Middlewares\JsonPayload());

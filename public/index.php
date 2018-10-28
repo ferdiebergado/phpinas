@@ -29,11 +29,12 @@ $whoops = new Whoops\Run;
 if (config('debug_mode')) {
     $whoops->pushHandler(new Whoops\Handler\PrettyPageHandler);
 } else {
-    $whoops->pushHandler(function ($e) use ($whoops) {
+    $whoops->pushHandler(function ($e) use ($whoops, $logger) {
         $whoops->allowQuit(false);
         $whoops->writeToOutput(false);
-        $whoops->pushHandler(new Whoops\Handler\PrettyPageHandler());
+        $whoops->pushHandler(new Whoops\Handler\PlainTextHandler);
         $body = $whoops->handleException($e);
+        $logger->addError($body);
         // $app = require(CONFIG_PATH . 'app.php');
         // Core\Mail::send($app['author_email'], $app['name'] . ' Error Exception', $body);
         // logger($e->getMessage(), 2);
@@ -59,9 +60,10 @@ $request = $creator->fromGlobals();
 
 /* Build the Middleware Stack */
 $broker = require(CORE_PATH . 'middlewares.php');
+
+/* Dispatch the Middlewares */
 /** @var \Psr\Http\Message\ResponseInterface */
 $response = $broker->handle($request);
 
 /* Send the response to the http client */
-// Http\Response\send($response->withHeader('Content-Type', 'application/json'));
 Http\Response\send($response);
